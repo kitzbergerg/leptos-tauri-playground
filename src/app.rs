@@ -8,6 +8,9 @@ use crate::components::{file_writer::FileWriter, greet::Greet};
 extern "C" {
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "tauri"])]
     pub async fn invoke(cmd: &str, args: JsValue) -> JsValue;
+
+    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "tauri"], js_name = "invoke", catch)]
+    pub async fn try_invoke(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
 }
 
 #[component]

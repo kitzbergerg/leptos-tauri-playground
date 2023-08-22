@@ -6,7 +6,7 @@ use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 
-use crate::app::invoke;
+use crate::app::try_invoke;
 
 #[derive(Serialize, Deserialize)]
 struct GreetArgs<'a> {
@@ -34,7 +34,10 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
                 content: &file_content.get(),
             })
             .unwrap();
-            let new_msg = invoke("write_to_file", args).await.as_string().unwrap();
+            let new_msg = match try_invoke("write_to_file", args).await {
+                Ok(val) => val.as_string().unwrap(),
+                Err(val) => val.as_string().unwrap(),
+            };
             set_write_to_file_msg.set(new_msg);
         });
     };
