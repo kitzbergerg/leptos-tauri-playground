@@ -1,6 +1,6 @@
 use leptos::{
-    component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, IntoView, Scope,
-    SignalGet, SignalSet,
+    component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, CollectView,
+    ErrorBoundary, IntoView, Scope, SignalGet, SignalSet,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
@@ -17,10 +17,17 @@ struct GreetArgs<'a> {
 struct FileContentArgs<'a> {
     content: &'a str,
 }
+
+#[derive(Debug, Clone, thiserror::Error)]
+enum Error {
+    #[error("Call to tauri went wrong: {0}")]
+    Boundary(String),
+}
+
 #[component]
 pub fn FileWriter(cx: Scope) -> impl IntoView {
     let (file_content, set_file_content) = create_signal(cx, String::new());
-    let (write_to_file_msg, set_write_to_file_msg) = create_signal(cx, String::new());
+    let (write_to_file_msg, set_write_to_file_msg) = create_signal(cx, Ok(String::new()));
 
     let update_file_content = move |ev| {
         let v = event_target_value(&ev);
@@ -35,8 +42,8 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
             })
             .unwrap();
             let new_msg = match try_invoke("write_to_file", args).await {
-                Ok(val) => val.as_string().unwrap(),
-                Err(val) => val.as_string().unwrap(),
+                Ok(val) => Ok(val.as_string().unwrap()),
+                Err(val) => Err(Error::Boundary(val.as_string().unwrap())),
             };
             set_write_to_file_msg.set(new_msg);
         });
@@ -45,15 +52,27 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
     view! { cx,
         <div>
             <form class="row" on:submit=write_to_file>
-            <input
-                id="write_to_file-input"
-                placeholder="Enter a file content..."
-                on:input=update_file_content
-            />
+                <input
+                    id="write_to_file-input"
+                    placeholder="Enter a file content..."
+                    on:input=update_file_content
+                />
                 <button type="submit">"Write to file"</button>
             </form>
 
-            <p><b>{ move || write_to_file_msg.get() }</b></p>
+            <ErrorBoundary
+            fallback=|cx, errors| view! { cx,
+                <div class="error">
+                    {move || errors.get()
+                        .into_iter()
+                        .map(|(_, e)| view! { cx, <p>{e.to_string()}</p>})
+                        .collect_view(cx)
+                    }
+                </div>
+            }
+            >
+                <p><b>{move || write_to_file_msg.get()}</b></p>
+            </ErrorBoundary>
         </div>
     }
 }
