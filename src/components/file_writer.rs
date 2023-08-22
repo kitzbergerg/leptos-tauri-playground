@@ -50,17 +50,16 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
     };
 
     view! { cx,
-        <div>
-            <form class="row" on:submit=write_to_file>
-                <input
-                    id="write_to_file-input"
-                    placeholder="Enter a file content..."
-                    on:input=update_file_content
-                />
-                <button type="submit">"Write to file"</button>
-            </form>
+        <form class="row" on:submit=write_to_file>
+            <input
+                id="write_to_file-input"
+                placeholder="Enter a file content..."
+                on:input=update_file_content
+            />
+            <button type="submit">"Write to file"</button>
+        </form>
 
-            <ErrorBoundary
+         <ErrorBoundary
             fallback=|cx, errors| view! { cx,
                 <div class="error">
                     {move || errors.get()
@@ -70,9 +69,8 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
                     }
                 </div>
             }
-            >
-                <p><b>{move || write_to_file_msg.get()}</b></p>
-            </ErrorBoundary>
-        </div>
+        >
+            <p><b>{move || write_to_file_msg.get()}</b></p>
+        </ErrorBoundary>
     }
 }

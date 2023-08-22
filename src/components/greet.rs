@@ -37,17 +37,15 @@ pub fn Greet(cx: Scope) -> impl IntoView {
     };
 
     view! { cx,
-        <div>
-            <form class="row" on:submit=greet>
-                <input
-                    id="greet-input"
-                    placeholder="Enter a name..."
-                    on:input=update_name
-                />
-                <button type="submit">"Greet"</button>
-            </form>
+        <form class="row" on:submit=greet>
+            <input
+                id="greet-input"
+                placeholder="Enter a name..."
+                on:input=update_name
+            />
+            <button type="submit">"Greet"</button>
+        </form>
 
-            <p><b>{ move || greet_msg.get() }</b></p>
-        </div>
+        <p><b>{ move || greet_msg.get() }</b></p>
     }
 }
