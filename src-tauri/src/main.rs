@@ -10,7 +10,7 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn write_to_file(content: &str) -> String {
+fn write_to_file(content: &str) -> Result<String, String> {
     println!("Writing to file: {}", content);
     let mut options = OpenOptions::new();
     let mut file = options
@@ -18,9 +18,9 @@ fn write_to_file(content: &str) -> String {
         .truncate(true)
         .write(true)
         .open("foo.txt")
-        .unwrap();
-    write!(&mut file, "{}", content).unwrap();
-    "Wrote to file!".to_owned()
+        .map_err(|e| e.to_string())?;
+    write!(&mut file, "{}", content).map_err(|e| e.to_string())?;
+    Ok("Wrote to file!".to_owned())
 }
 
 fn main() {
