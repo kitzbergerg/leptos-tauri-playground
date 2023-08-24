@@ -35,6 +35,9 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
         set_should_error.set(v);
     };
 
+    let uppercase = move || file_content.get().to_uppercase();
+    create_effect(cx, move |_| leptos::log!("It changed: {}", uppercase()));
+
     let write_to_file = move |ev: SubmitEvent| {
         ev.prevent_default();
         spawn_local(async move {
