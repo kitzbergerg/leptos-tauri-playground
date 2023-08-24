@@ -3,6 +3,7 @@
 
 use std::{fs::OpenOptions, io::Write};
 
+use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
 #[tauri::command]
@@ -11,9 +12,19 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+#[derive(Serialize, Deserialize)]
+struct FileWriterArgs {
+    content: String,
+    should_error: bool,
+}
+
 #[tauri::command]
-fn write_to_file(content: &str) -> Result<String, String> {
-    println!("Writing to file: {}", content);
+fn write_to_file(content: FileWriterArgs) -> Result<String, String> {
+    if content.should_error {
+        return Err("Requested to error".to_owned());
+    }
+
+    println!("Writing to file: {}", content.content);
     let mut options = OpenOptions::new();
     let mut file = options
         .create(true)
@@ -21,7 +32,7 @@ fn write_to_file(content: &str) -> Result<String, String> {
         .write(true)
         .open("foo.txt")
         .map_err(|e| e.to_string())?;
-    write!(&mut file, "{}", content).map_err(|e| e.to_string())?;
+    write!(&mut file, "{}", content.content).map_err(|e| e.to_string())?;
     Ok("Wrote to file!".to_owned())
 }
 

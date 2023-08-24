@@ -85,6 +85,12 @@ button:active {
 input,
 button {
     outline: none;
+    margin: 0.4rem;
+}
+
+p,
+label {
+    font: 1rem 'Fira Sans', sans-serif;
 }
 
 /* TODO: make better error message */
