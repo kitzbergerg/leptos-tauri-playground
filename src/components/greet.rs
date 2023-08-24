@@ -1,6 +1,6 @@
 use leptos::{
     component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, IntoView, Scope,
-    SignalGet, SignalGetUntracked, SignalSet,
+    SignalGet, SignalGetUntracked, SignalSet, SignalWithUntracked,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
@@ -26,7 +26,7 @@ pub fn Greet(cx: Scope) -> impl IntoView {
     let greet = move |ev: SubmitEvent| {
         ev.prevent_default();
         spawn_local(async move {
-            if name.get_untracked().is_empty() {
+            if name.with_untracked(String::is_empty) {
                 return;
             }
 
