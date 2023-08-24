@@ -1,12 +1,12 @@
 use leptos::{
-    component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, CollectView,
-    ErrorBoundary, IntoView, Scope, SignalGet, SignalSet,
+    component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, ErrorBoundary,
+    IntoView, Scope, SignalGet, SignalSet,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 
-use crate::app::try_invoke;
+use crate::{app::try_invoke, components::error_template::ErrorTemplate};
 
 #[derive(Serialize, Deserialize)]
 struct GreetArgs<'a> {
@@ -60,15 +60,7 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
         </form>
 
          <ErrorBoundary
-            fallback=|cx, errors| view! { cx,
-                <div class="error">
-                    {move || errors.get()
-                        .into_iter()
-                        .map(|(_, e)| view! { cx, <p>{e.to_string()}</p>})
-                        .collect_view(cx)
-                    }
-                </div>
-            }
+            fallback=|cx, errors| view! { cx, <ErrorTemplate errors=errors/> }
         >
             <p><b>{move || write_to_file_msg.get()}</b></p>
         </ErrorBoundary>
