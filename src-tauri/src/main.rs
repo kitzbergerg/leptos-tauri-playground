@@ -3,19 +3,13 @@
 
 use std::{fs::OpenOptions, io::Write};
 
-use serde::{Deserialize, Serialize};
+use shared_model::FileWriterArgs;
 use tauri::Manager;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
     println!("Geetings: {}", name);
     format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[derive(Serialize, Deserialize)]
-struct FileWriterArgs {
-    content: String,
-    should_error: bool,
 }
 
 #[tauri::command]

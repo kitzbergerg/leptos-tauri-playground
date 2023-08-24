@@ -1,6 +1,6 @@
 use leptos::{
     component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, IntoView, Scope,
-    SignalGet, SignalSet, SignalGetUntracked,
+    SignalGet, SignalGetUntracked, SignalSet,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use serde_wasm_bindgen::to_value;
 use crate::app::invoke;
 
 #[derive(Serialize, Deserialize)]
-struct GreetArgs<'a> {
+struct Args<'a> {
     name: &'a str,
 }
 
@@ -30,7 +30,10 @@ pub fn Greet(cx: Scope) -> impl IntoView {
                 return;
             }
 
-            let args = to_value(&GreetArgs { name: &name.get_untracked() }).unwrap();
+            let args = to_value(&Args {
+                name: &name.get_untracked(),
+            })
+            .unwrap();
             let new_msg = invoke("greet", args).await.as_string().unwrap();
             set_greet_msg.set(new_msg);
         });

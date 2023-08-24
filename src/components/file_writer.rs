@@ -1,33 +1,23 @@
 use leptos::{
-    component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, ErrorBoundary,
-    IntoView, Scope, SignalGet, SignalGetUntracked, SignalSet, event_target_checked,
+    component, create_signal, ev::SubmitEvent, event_target_checked, event_target_value,
+    spawn_local, ErrorBoundary, IntoView, Scope, SignalGet, SignalGetUntracked, SignalSet,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
+use shared_model::FileWriterArgs;
 
 use crate::{app::try_invoke, components::error_template::ErrorTemplate};
-
-#[derive(Serialize, Deserialize)]
-struct GreetArgs<'a> {
-    name: &'a str,
-}
-
-#[derive(Serialize, Deserialize)]
-struct FileWriterArgs {
-    content: Args,
-}
-
-#[derive(Serialize, Deserialize)]
-struct Args {
-    content: String,
-    should_error: bool,
-}
 
 #[derive(Debug, Clone, thiserror::Error)]
 enum Error {
     #[error("Call to tauri went wrong: {0}")]
     Boundary(String),
+}
+
+#[derive(Serialize, Deserialize)]
+struct Args {
+    content: FileWriterArgs,
 }
 
 #[component]
@@ -48,8 +38,8 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
     let write_to_file = move |ev: SubmitEvent| {
         ev.prevent_default();
         spawn_local(async move {
-            let args = to_value(&FileWriterArgs {
-                content: Args {
+            let args = to_value(&Args {
+                content: FileWriterArgs {
                     content: file_content.get_untracked(),
                     should_error: should_error.get_untracked(),
                 },
@@ -71,7 +61,7 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
                 on:input=update_file_content
             />
             <div>
-                <input 
+                <input
                     type="checkbox"
                     name="ShouldError"
                     on:input=update_should_error
