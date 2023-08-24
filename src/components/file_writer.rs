@@ -1,6 +1,6 @@
 use leptos::{
     component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, ErrorBoundary,
-    IntoView, Scope, SignalGet, SignalSet,
+    IntoView, Scope, SignalGet, SignalSet, SignalGetUntracked,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
         ev.prevent_default();
         spawn_local(async move {
             let args = to_value(&FileContentArgs {
-                content: &file_content.get(),
+                content: &file_content.get_untracked(),
             })
             .unwrap();
             let new_msg = match try_invoke("write_to_file", args).await {
