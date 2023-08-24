@@ -1,6 +1,6 @@
 use leptos::{
     component, create_signal, ev::SubmitEvent, event_target_checked, event_target_value,
-    spawn_local, ErrorBoundary, IntoView, Scope, SignalGet, SignalGetUntracked, SignalSet,
+    spawn_local, ErrorBoundary, IntoView, Scope, SignalGet, SignalGetUntracked, SignalSet, create_effect,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,7 @@ struct Args {
 pub fn FileWriter(cx: Scope) -> impl IntoView {
     let (file_content, set_file_content) = create_signal(cx, String::new());
     let (should_error, set_should_error) = create_signal(cx, false);
-    let (write_to_file_msg, set_write_to_file_msg) = create_signal(cx, Ok(String::new()));
+    let (file_writer_response, set_file_writer_response) = create_signal(cx, Ok(String::new()));
 
     let update_file_content = move |ev| {
         let v = event_target_value(&ev);
@@ -45,11 +45,11 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
                 },
             })
             .unwrap();
-            let new_msg = match try_invoke("write_to_file", args).await {
+            let file_writer_response = match try_invoke("write_to_file", args).await {
                 Ok(val) => Ok(val.as_string().unwrap()),
                 Err(val) => Err(Error::Boundary(val.as_string().unwrap())),
             };
-            set_write_to_file_msg.set(new_msg);
+            set_file_writer_response.set(file_writer_response);
         });
     };
 
@@ -74,7 +74,7 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
          <ErrorBoundary
             fallback=|cx, errors| view! { cx, <ErrorTemplate errors=errors/> }
         >
-            <p><b>{move || write_to_file_msg.get()}</b></p>
+            <p><b>{move || file_writer_response.get()}</b></p>
         </ErrorBoundary>
     }
 }
