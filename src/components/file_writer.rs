@@ -1,6 +1,5 @@
 use leptos::{
-    component, create_signal, ev::SubmitEvent, event_target_checked, event_target_value,
-    spawn_local, ErrorBoundary, IntoView, Scope, SignalGet, SignalGetUntracked, SignalSet, create_effect,
+    component, create_action, create_node_ref, html::Input, ErrorBoundary, IntoView, Scope,
 };
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
@@ -22,52 +21,36 @@ struct Args {
 
 #[component]
 pub fn FileWriter(cx: Scope) -> impl IntoView {
-    let (file_content, set_file_content) = create_signal(cx, String::new());
-    let (should_error, set_should_error) = create_signal(cx, false);
-    let (file_writer_response, set_file_writer_response) = create_signal(cx, Ok(String::new()));
+    let file_writer_action = create_action(cx, move |(content, should_error): &(String, bool)| {
+        let content = content.to_owned();
+        let should_error = *should_error;
+        async move { write_to_file(content, should_error).await }
+    });
 
-    let update_file_content = move |ev| {
-        let v = event_target_value(&ev);
-        set_file_content.set(v);
-    };
-    let update_should_error = move |ev| {
-        let v = event_target_checked(&ev);
-        set_should_error.set(v);
-    };
-
-    let uppercase = move || file_content.get().to_uppercase();
-    create_effect(cx, move |_| leptos::log!("It changed: {}", uppercase()));
-
-    let write_to_file = move |ev: SubmitEvent| {
-        ev.prevent_default();
-        spawn_local(async move {
-            let args = to_value(&Args {
-                content: FileWriterArgs {
-                    content: file_content.get_untracked(),
-                    should_error: should_error.get_untracked(),
-                },
-            })
-            .unwrap();
-            let file_writer_response = match try_invoke("write_to_file", args).await {
-                Ok(val) => Ok(val.as_string().unwrap()),
-                Err(val) => Err(Error::Boundary(val.as_string().unwrap())),
-            };
-            set_file_writer_response.set(file_writer_response);
-        });
-    };
+    let content_ref = create_node_ref::<Input>(cx);
+    let should_error_ref = create_node_ref::<Input>(cx);
 
     view! { cx,
-        <form class="row" on:submit=write_to_file>
+        <form
+            class="row"
+            on:submit=move |ev| {
+                ev.prevent_default();
+                let content = content_ref.get().expect("input to exist");
+                let should_error = should_error_ref.get().expect("input to exist");
+                file_writer_action.dispatch((content.value(), should_error.checked()));
+            }
+        >
             <input
                 id="write_to_file-input"
                 placeholder="Enter a file content..."
-                on:input=update_file_content
+                type="text"
+                node_ref=content_ref
             />
             <div>
                 <input
-                    type="checkbox"
                     name="ShouldError"
-                    on:input=update_should_error
+                    type="checkbox"
+                    node_ref=should_error_ref
                 />
                 <label for="ShouldError">Should error</label>
             </div>
@@ -77,7 +60,22 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
          <ErrorBoundary
             fallback=|cx, errors| view! { cx, <ErrorTemplate errors=errors/> }
         >
-            <p><b>{move || file_writer_response.get()}</b></p>
+            <p><b>{move || file_writer_action.value() }</b></p>
         </ErrorBoundary>
+    }
+}
+
+async fn write_to_file(content: String, should_error: bool) -> Result<String, Error> {
+    let args = to_value(&Args {
+        content: FileWriterArgs {
+            content,
+            should_error,
+        },
+    })
+    .unwrap();
+
+    match try_invoke("write_to_file", args).await {
+        Ok(val) => Ok(val.as_string().unwrap()),
+        Err(val) => Err(Error::Boundary(val.as_string().unwrap())),
     }
 }

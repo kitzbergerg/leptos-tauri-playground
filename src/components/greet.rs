@@ -1,7 +1,4 @@
-use leptos::{
-    component, create_signal, ev::SubmitEvent, event_target_value, spawn_local, IntoView, Scope,
-    SignalGet, SignalGetUntracked, SignalSet, SignalWithUntracked,
-};
+use leptos::{component, create_action, create_node_ref, html::Input, IntoView, Scope};
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
@@ -15,40 +12,35 @@ struct Args<'a> {
 
 #[component]
 pub fn Greet(cx: Scope) -> impl IntoView {
-    let (name, set_name) = create_signal(cx, String::new());
-    let (greet_msg, set_greet_msg) = create_signal(cx, String::new());
+    let greet_action = create_action(cx, |input: &String| {
+        let input = input.to_owned();
+        async move { greet(&input).await }
+    });
 
-    let update_name = move |ev| {
-        let v = event_target_value(&ev);
-        set_name.set(v);
-    };
-
-    let greet = move |ev: SubmitEvent| {
-        ev.prevent_default();
-        spawn_local(async move {
-            if name.with_untracked(String::is_empty) {
-                return;
-            }
-
-            let args = to_value(&Args {
-                name: &name.get_untracked(),
-            })
-            .unwrap();
-            let new_msg = invoke("greet", args).await.as_string().unwrap();
-            set_greet_msg.set(new_msg);
-        });
-    };
+    let input_ref = create_node_ref::<Input>(cx);
 
     view! { cx,
-        <form class="row" on:submit=greet>
+        <form
+            class="row"
+            on:submit=move |ev| {
+                ev.prevent_default();
+                let input = input_ref.get().expect("input to exist");
+                greet_action.dispatch(input.value());
+            }
+        >
             <input
                 id="greet-input"
                 placeholder="Enter a name..."
-                on:input=update_name
+                type="text"
+                node_ref=input_ref
             />
             <button type="submit">"Greet"</button>
         </form>
-
-        <p><b>{ move || greet_msg.get() }</b></p>
+        <p><b>{ move || greet_action.value() }</b></p>
     }
+}
+
+async fn greet(name: &str) -> String {
+    let args = to_value(&Args { name }).unwrap();
+    invoke("greet", args).await.as_string().unwrap()
 }
