@@ -1,18 +1,12 @@
-use leptos::{
-    component, create_action, create_node_ref, html::Input, ErrorBoundary, IntoView, Scope,
-};
+use leptos::{component, create_action, create_node_ref, html::Input, IntoView, Scope, SignalGet};
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
 use shared_model::FileWriterArgs;
 
-use crate::{app::try_invoke, components::error_template::ErrorTemplate};
+use crate::app::try_invoke;
 
-#[derive(Debug, Clone, thiserror::Error)]
-enum Error {
-    #[error("Call to tauri went wrong: {0}")]
-    Boundary(String),
-}
+use super::error::Error;
 
 #[derive(Serialize, Deserialize)]
 struct Args {
@@ -29,6 +23,13 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
 
     let content_ref = create_node_ref::<Input>(cx);
     let should_error_ref = create_node_ref::<Input>(cx);
+
+    let action = move || {
+        file_writer_action
+            .value()
+            .get()
+            .and_then(|result| result.map_err(|error| error.show(cx)).ok())
+    };
 
     view! { cx,
         <form
@@ -57,11 +58,7 @@ pub fn FileWriter(cx: Scope) -> impl IntoView {
             <button type="submit">"Write to file"</button>
         </form>
 
-         <ErrorBoundary
-            fallback=|cx, errors| view! { cx, <ErrorTemplate errors=errors/> }
-        >
-            <p><b>{move || file_writer_action.value() }</b></p>
-        </ErrorBoundary>
+        <p><b>{ action }</b></p>
     }
 }
 

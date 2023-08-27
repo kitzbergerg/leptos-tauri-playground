@@ -93,22 +93,33 @@ label {
     font: 1rem 'Fira Sans', sans-serif;
 }
 
-/* TODO: make better error message */
 .error {
-    min-width: 250px; /* Set a default minimum width */
-    margin-left: -125px; /* Divide value of min-width by 2 */
-    background-color: #333; /* Black background color */
-    color: red; /* White text color */
-    text-align: center; /* Centered text */
-    border-radius: 2px; /* Rounded borders */
-    padding: 16px; /* Padding */
-    position: fixed; /* Sit on top of the screen */
-    z-index: 1; /* Add a z-index if needed */
-    left: 50%; /* Center the snackbar */
-    bottom: 30px; /* 30px from the bottom */
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    position: relative; 
+    width: 230px; /* Reduced for padding adjustment */
+    background-color: #ff4f4f; /* Brighter red for visibility */
+    color: white; /* White text */
+    text-align: left; /* Left-aligned text with icon and close button */
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: all 0.3s ease; /* Smooth transition for hover effect */
 }
+
+.error:hover {
+    cursor: pointer;
+    transform: scale(1.02);  /* Scale it up by 2% */
+}
+
+.error-container {
+    position: fixed;
+    top: 0px;
+    right: 10px;
+    margin: 10px;
+    z-index: 99; /* Just below the toasts to ensure they're on top */
+    width: 250px; /* Width of the container to match the toast width */
+}
+
 
 #greet-input {
     margin-right: 5px;

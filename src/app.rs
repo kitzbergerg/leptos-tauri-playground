@@ -1,8 +1,15 @@
-use leptos::{IntoView, Scope};
+use std::collections::HashMap;
+
+use leptos::{create_rw_signal, provide_context, IntoView, RwSignal, Scope};
 use leptos_macro::{component, view};
+use uuid::Uuid;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
-use crate::components::{file_writer::FileWriter, greet::Greet};
+use crate::components::{
+    error::{Error, ErrorToast},
+    file_writer::FileWriter,
+    greet::Greet,
+};
 
 #[wasm_bindgen]
 extern "C" {
@@ -13,8 +20,22 @@ extern "C" {
     pub async fn try_invoke(cmd: &str, args: JsValue) -> Result<JsValue, JsValue>;
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct GlobalState {
+    pub errors: RwSignal<HashMap<Uuid, Error>>,
+}
+impl GlobalState {
+    pub fn new(cx: Scope) -> Self {
+        Self {
+            errors: create_rw_signal(cx, HashMap::new()),
+        }
+    }
+}
+
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
+    provide_context(cx, GlobalState::new(cx));
+
     view! { cx,
         <main class="container">
             <div class="row">
@@ -33,6 +54,8 @@ pub fn App(cx: Scope) -> impl IntoView {
             <br/>
 
             <FileWriter/>
+
+            <ErrorToast/>
         </main>
     }
 }
