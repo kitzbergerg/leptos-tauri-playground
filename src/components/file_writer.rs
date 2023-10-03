@@ -1,4 +1,4 @@
-use leptos::{component, create_action, create_node_ref, html::Input, IntoView, Scope, SignalGet};
+use leptos::{component, create_action, create_node_ref, html::Input, IntoView, SignalGet};
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
@@ -14,24 +14,24 @@ struct Args {
 }
 
 #[component]
-pub fn FileWriter(cx: Scope) -> impl IntoView {
-    let file_writer_action = create_action(cx, move |(content, should_error): &(String, bool)| {
+pub fn FileWriter() -> impl IntoView {
+    let file_writer_action = create_action(move |(content, should_error): &(String, bool)| {
         let content = content.to_owned();
         let should_error = *should_error;
         async move { write_to_file(content, should_error).await }
     });
 
-    let content_ref = create_node_ref::<Input>(cx);
-    let should_error_ref = create_node_ref::<Input>(cx);
+    let content_ref = create_node_ref::<Input>();
+    let should_error_ref = create_node_ref::<Input>();
 
     let action = move || {
         file_writer_action
             .value()
             .get()
-            .and_then(|result| result.map_err(|error| error.show(cx)).ok())
+            .and_then(|result| result.map_err(|error| error.show()).ok())
     };
 
-    view! { cx,
+    view! {
         <form
             class="row"
             on:submit=move |ev| {

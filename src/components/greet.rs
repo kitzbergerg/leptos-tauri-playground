@@ -1,4 +1,4 @@
-use leptos::{component, create_action, create_node_ref, html::Input, IntoView, Scope};
+use leptos::{component, create_action, create_node_ref, html::Input, IntoView};
 use leptos_macro::view;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::to_value;
@@ -11,15 +11,15 @@ struct Args<'a> {
 }
 
 #[component]
-pub fn Greet(cx: Scope) -> impl IntoView {
-    let greet_action = create_action(cx, |input: &String| {
+pub fn Greet() -> impl IntoView {
+    let greet_action = create_action(|input: &String| {
         let input = input.to_owned();
         async move { greet(&input).await }
     });
 
-    let input_ref = create_node_ref::<Input>(cx);
+    let input_ref = create_node_ref::<Input>();
 
-    view! { cx,
+    view! {
         <form
             class="row"
             on:submit=move |ev| {

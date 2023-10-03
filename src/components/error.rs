@@ -1,4 +1,4 @@
-use leptos::{expect_context, For, IntoView, Scope, SignalGet, SignalUpdate};
+use leptos::{expect_context, For, IntoView, SignalGet, SignalUpdate};
 use leptos_macro::{component, view};
 use uuid::Uuid;
 
@@ -11,8 +11,8 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn show(self, cx: Scope) {
-        let errors = expect_context::<GlobalState>(cx).errors;
+    pub fn show(self) {
+        let errors = expect_context::<GlobalState>().errors;
         errors.update(|map| {
             map.insert(Uuid::new_v4(), self);
         });
@@ -20,16 +20,16 @@ impl Error {
 }
 
 #[component]
-pub fn ErrorToast(cx: Scope) -> impl IntoView {
-    let errors = expect_context::<GlobalState>(cx).errors;
+pub fn ErrorToast() -> impl IntoView {
+    let errors = expect_context::<GlobalState>().errors;
 
-    view! { cx,
+    view! {
         <div class="error-container">
             <For
                 each=move || errors.get()
                 key=|error| error.0
-                view=move |cx, (id, error)| {
-                    view! { cx,
+                children=move |(id, error)| {
+                    view! {
                         <div
                             class="error"
                             key={id.to_string()}

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use leptos::{create_rw_signal, provide_context, IntoView, RwSignal, Scope};
+use leptos::{create_rw_signal, provide_context, IntoView, RwSignal};
 use leptos_macro::{component, view};
 use uuid::Uuid;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
@@ -25,18 +25,18 @@ pub struct GlobalState {
     pub errors: RwSignal<HashMap<Uuid, Error>>,
 }
 impl GlobalState {
-    pub fn new(cx: Scope) -> Self {
+    pub fn new() -> Self {
         Self {
-            errors: create_rw_signal(cx, HashMap::new()),
+            errors: create_rw_signal(HashMap::new()),
         }
     }
 }
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
-    provide_context(cx, GlobalState::new(cx));
+pub fn App() -> impl IntoView {
+    provide_context(GlobalState::new());
 
-    view! { cx,
+    view! {
         <main class="container">
             <div class="row">
                 <a href="https://tauri.app" target="_blank">
